@@ -18,9 +18,8 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-// Altura estimada do ChatOverlay colapsado + margem para o card ficar acima dele
-const CHAT_HEIGHT_COLLAPSED = Platform.OS === 'ios' ? 130 : 110;
-const CARD_BOTTOM_OFFSET    = CHAT_HEIGHT_COLLAPSED + 12;
+// Card fica bem acima do chat expandido
+const CARD_BOTTOM_OFFSET = Platform.OS === 'ios' ? 320 : 300;
 
 export default function ViagemScreen({
   navigation,
@@ -114,7 +113,7 @@ export default function ViagemScreen({
         custoBrl:   resultado.custoBrl,
       });
       setViagemAtiva(false);
-      setCardVisivel(true);   // ← mostra o card com animação
+      setCardVisivel(true);
 
       if (mapRef.current && resultado.todasCoords.length > 0) {
         mapRef.current.fitToCoordinates(resultado.todasCoords, {
@@ -139,26 +138,7 @@ export default function ViagemScreen({
       ? `GPS ativo: ${localizacaoAtual.latitude.toFixed(4)}, ${localizacaoAtual.longitude.toFixed(4)}`
       : 'GPS inativo';
 
-    const systemPrompt = `Você é um assistente de transporte do Rio de Janeiro. Sua função é conversar naturalmente para coletar origem e destino, depois traçar a rota.
-
-Regras de prioridade (nunca pergunte ao usuário — detecte pela fala ou use o padrão):
-- "mais_rapido" → padrão quando o usuário não especificar nada
-- "mais_barato" → quando mencionar custo, tarifa, preço, barato, econômico
-- "menos_baldeacoes" → quando mencionar menos trocas, direto, sem baldeação
-
-Estado atual da tela:
-- Origem: ${origemInput || 'não definida'}
-- Destino: ${destinoInput || 'não definido'}
-- Prioridade atual: ${prioridade}
-- ${gpsInfo}
-
-Quando tiver origem E destino, execute a busca imediatamente sem pedir confirmação.
-Se o usuário confirmar que quer usar a localização atual como origem, use "localização atual" como origem.
-
-Quando for executar, responda SOMENTE este JSON (sem texto fora dele):
-{"acao":"buscar","origem":"<valor>","destino":"<valor>","prioridade":"mais_rapido|mais_barato|menos_baldeacoes"}
-
-Se ainda faltar origem ou destino, responda em texto simples pedindo só o que falta.`;
+    const systemPrompt = `Você é um assistente de transporte do Rio de Janeiro. Sua função é conversar naturalmente para coletar origem e destino, depois traçar a rota.\n\nRegras de prioridade (nunca pergunte ao usuário — detecte pela fala ou use o padrão):\n- "mais_rapido" → padrão quando o usuário não especificar nada\n- "mais_barato" → quando mencionar custo, tarifa, preço, barato, econômico\n- "menos_baldeacoes" → quando mencionar menos trocas, direto, sem baldeação\n\nEstado atual da tela:\n- Origem: ${origemInput || 'não definida'}\n- Destino: ${destinoInput || 'não definido'}\n- Prioridade atual: ${prioridade}\n- ${gpsInfo}\n\nQuando tiver origem E destino, execute a busca imediatamente sem pedir confirmação.\nSe o usuário confirmar que quer usar a localização atual como origem, use "localização atual" como origem.\n\nQuando for executar, responda SOMENTE este JSON (sem texto fora dele):\n{"acao":"buscar","origem":"<valor>","destino":"<valor>","prioridade":"mais_rapido|mais_barato|menos_baldeacoes"}\n\nSe ainda faltar origem ou destino, responda em texto simples pedindo só o que falta.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -222,7 +202,7 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
 
   const handleEncerrarViagem = () => {
     setViagemAtiva(false);
-    setCardVisivel(false);   // ← esconde card com animação
+    setCardVisivel(false);
     setRotaSegmentos([]);
     setRotaInfo(null);
     setDestinoInput('');
@@ -278,7 +258,6 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
         rotaInfo={rotaInfo}
       />
 
-      {/* Card de viagem — posicionado acima do chat, animado */}
       <CardViagem
         segmentos={rotaSegmentos}
         tempoTotal={rotaInfo?.tempoTotal}
@@ -290,11 +269,10 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
         onEncerrar={handleEncerrarViagem}
       />
 
-      {/* Botões flutuantes — play só aparece com rota calculada */}
       <BotoesFlutantes
         rotaCalculada={rotaSegmentos.length > 0}
         viagemAtiva={viagemAtiva}
-        onIniciarViagem={() => setCardVisivel(v => !v)}  // toggle card pelo botão lateral
+        onIniciarViagem={() => setCardVisivel(v => !v)}
         onLocalizacao={centralizarLocalizacao}
         gpsAtivo={gpsAtivo}
       />

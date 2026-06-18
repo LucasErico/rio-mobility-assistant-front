@@ -18,8 +18,24 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
-// Card fica bem acima do chat expandido
 const CARD_BOTTOM_OFFSET = Platform.OS === 'ios' ? 320 : 300;
+
+// Monta texto descritivo do trajeto a partir dos segmentos
+function descreverTrajeto(segmentos) {
+  const passos = [];
+  for (const seg of segmentos) {
+    if (seg.tipo === 'pe') {
+      const destino = seg.parada_destino ? ` até ${seg.parada_destino}` : '';
+      passos.push(`🚶 Caminhe ${seg.tempoMin} min${destino}`);
+    } else {
+      const linha  = seg.linha?.nome ?? seg.tipo;
+      const origem = seg.parada_origem  ? ` em ${seg.parada_origem}`  : '';
+      const destino = seg.parada_destino ? ` até ${seg.parada_destino}` : '';
+      passos.push(`🚌 Embarque na ${linha}${origem}${destino} (${seg.tempoMin} min)`);
+    }
+  }
+  return passos.join('\n');
+}
 
 export default function ViagemScreen({
   navigation,
@@ -122,10 +138,13 @@ export default function ViagemScreen({
         });
       }
 
+      // ── Monta resposta descritiva ──
       const custoTexto = resultado.custoBrl
         ? ` · R$ ${resultado.custoBrl.toFixed(2)}`
         : '';
-      return `Rota traçada! ${resultado.tempoTotal} min${custoTexto}`;
+      const cabecalho  = `✅ Rota traçada! ${resultado.tempoTotal} min${custoTexto}`;
+      const descricao  = descreverTrajeto(resultado.segmentos);
+      return descricao ? `${cabecalho}\n\n${descricao}` : cabecalho;
 
     } catch (err) {
       setCardVisivel(false);

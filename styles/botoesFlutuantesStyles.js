@@ -22,8 +22,14 @@ export default StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-  botaoDesabilitado: {
-    backgroundColor: COLORS.bgDisabled,
+  // Botão play ATIVO — azul primário com destaque
+  botaoPlayAtivo: {
+    backgroundColor: COLORS.primary,
+  },
+  // Botão play INATIVO — invisível / desaparece do layout
+  botaoPlayHidden: {
+    opacity: 0,
+    pointerEvents: 'none',
   },
   botaoGpsDesligado: {
     backgroundColor: 'rgba(240,240,240,0.7)',
@@ -33,9 +39,12 @@ export default StyleSheet.create({
   icone: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: COLORS.textDark,
   },
-  iconeDesabilitado: {
-    color: '#aaa',
+  iconePlay: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   iconeGpsAtivo: {
     color: COLORS.success,

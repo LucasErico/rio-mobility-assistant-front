@@ -18,6 +18,10 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true,
 });
 
+// Altura estimada do ChatOverlay colapsado + margem para o card ficar acima dele
+const CHAT_HEIGHT_COLLAPSED = Platform.OS === 'ios' ? 130 : 110;
+const CARD_BOTTOM_OFFSET    = CHAT_HEIGHT_COLLAPSED + 12;
+
 export default function ViagemScreen({
   navigation,
   localizacaoAtual,
@@ -39,6 +43,7 @@ export default function ViagemScreen({
   const [rotaSegmentos, setRotaSegmentos] = useState([]);
   const [rotaInfo,      setRotaInfo]      = useState(null);
   const [viagemAtiva,   setViagemAtiva]   = useState(false);
+  const [cardVisivel,   setCardVisivel]   = useState(false);
 
   const mapRef = useRef();
 
@@ -81,7 +86,6 @@ export default function ViagemScreen({
     }
   };
 
-  // ─── PASSO 2: executarBusca sem mocks ────────────────────────────────────
   const executarBusca = async (origemTexto, destinoTexto) => {
     if (!origemTexto || !destinoTexto) {
       return 'Preciso de origem e destino para traçar a rota.';
@@ -94,13 +98,11 @@ export default function ViagemScreen({
     };
     const prioInterno = prioMap[prioridade] ?? 'mais_rapido';
 
-    // Origem: usa coordenadas reais do GPS se disponível,
-    // caso contrário passa o texto para o backend geocodificar
     const coordOrigem = (gpsAtivo && localizacaoAtual)
-      ? localizacaoAtual                         // { latitude, longitude }
-      : { address: origemTexto };                // backend usa Nominatim
+      ? localizacaoAtual
+      : { address: origemTexto };
 
-    const coordDestino = { address: destinoTexto }; // backend sempre geocodifica o destino
+    const coordDestino = { address: destinoTexto };
 
     try {
       const resultado = await calcularRota(coordOrigem, coordDestino, prioInterno);
@@ -112,10 +114,11 @@ export default function ViagemScreen({
         custoBrl:   resultado.custoBrl,
       });
       setViagemAtiva(false);
+      setCardVisivel(true);   // ← mostra o card com animação
 
       if (mapRef.current && resultado.todasCoords.length > 0) {
         mapRef.current.fitToCoordinates(resultado.todasCoords, {
-          edgePadding: { top: 100, right: 40, bottom: 280, left: 40 },
+          edgePadding: { top: 100, right: 40, bottom: 320, left: 40 },
           animated: true,
         });
       }
@@ -126,11 +129,11 @@ export default function ViagemScreen({
       return `Rota traçada! ${resultado.tempoTotal} min${custoTexto}`;
 
     } catch (err) {
+      setCardVisivel(false);
       return err.message;
     }
   };
 
-  // ─── IA: systemPrompt com prioridades alinhadas ───────────────────────────
   const processarChatIA = async (textoUsuario, historicoAtual) => {
     const gpsInfo = gpsAtivo && localizacaoAtual
       ? `GPS ativo: ${localizacaoAtual.latitude.toFixed(4)}, ${localizacaoAtual.longitude.toFixed(4)}`
@@ -192,7 +195,7 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
         }
         return await executarBusca(origemFinal, destinoFinal);
       }
-    } catch (_) { /* resposta conversacional */ }
+    } catch (_) {}
 
     return resposta;
   };
@@ -215,6 +218,14 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
     } finally {
       setCarregando(false);
     }
+  };
+
+  const handleEncerrarViagem = () => {
+    setViagemAtiva(false);
+    setCardVisivel(false);   // ← esconde card com animação
+    setRotaSegmentos([]);
+    setRotaInfo(null);
+    setDestinoInput('');
   };
 
   const coordDestino = rotaSegmentos.length > 0
@@ -267,29 +278,26 @@ Se ainda faltar origem ou destino, responda em texto simples pedindo só o que f
         rotaInfo={rotaInfo}
       />
 
+      {/* Card de viagem — posicionado acima do chat, animado */}
+      <CardViagem
+        segmentos={rotaSegmentos}
+        tempoTotal={rotaInfo?.tempoTotal}
+        custoBrl={rotaInfo?.custoBrl}
+        viagemAtiva={viagemAtiva}
+        visivel={cardVisivel}
+        bottomOffset={CARD_BOTTOM_OFFSET}
+        onIniciar={() => setViagemAtiva(true)}
+        onEncerrar={handleEncerrarViagem}
+      />
+
+      {/* Botões flutuantes — play só aparece com rota calculada */}
       <BotoesFlutantes
         rotaCalculada={rotaSegmentos.length > 0}
         viagemAtiva={viagemAtiva}
-        onIniciarViagem={() => setViagemAtiva(true)}
+        onIniciarViagem={() => setCardVisivel(v => !v)}  // toggle card pelo botão lateral
         onLocalizacao={centralizarLocalizacao}
         gpsAtivo={gpsAtivo}
       />
-
-      {rotaSegmentos.length > 0 && rotaInfo && (
-        <CardViagem
-          segmentos={rotaSegmentos}
-          tempoTotal={rotaInfo.tempoTotal}
-          custoBrl={rotaInfo.custoBrl}
-          viagemAtiva={viagemAtiva}
-          onIniciar={() => setViagemAtiva(true)}
-          onEncerrar={() => {
-            setViagemAtiva(false);
-            setRotaSegmentos([]);
-            setRotaInfo(null);
-            setDestinoInput('');
-          }}
-        />
-      )}
 
       <ChatOverlay
         historicoChat={historicoChat}

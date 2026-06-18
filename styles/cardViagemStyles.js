@@ -2,34 +2,41 @@ import { StyleSheet } from 'react-native';
 import { COLORS } from './globalStyles';
 
 export default StyleSheet.create({
+  // Card agora é posicionado como elemento fixo (não absolute)
+  // entre o menu superior e o chat — gerenciado pelo ViagemScreen
   card: {
     position: 'absolute',
-    bottom: 20,
     left: 15,
     right: 15,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: 'rgba(255,255,255,0.97)',
     borderRadius: 20,
-    padding: 16,
-    paddingBottom: 24,
+    padding: 14,
+    paddingBottom: 14,
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 12,
-    elevation: 10,
-    zIndex: 20,
+    elevation: 12,
+    zIndex: 25,
+    // 'bottom' é controlado dinamicamente pelo ViagemScreen
+    // via prop 'bottomOffset' para ficar logo acima do chat
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   titulo: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.textDark,
   },
+  infoRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   tempo: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.primary,
     fontWeight: '500',
   },
@@ -37,7 +44,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
     gap: 4,
   },
   segmento: {
@@ -46,53 +53,53 @@ export default StyleSheet.create({
     gap: 4,
   },
   bolinha: {
-    width: 10,
-    height: 10,
+    width: 9,
+    height: 9,
     borderRadius: 5,
   },
   segTexto: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textDark,
     maxWidth: 110,
   },
   seta: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textMid,
-    marginHorizontal: 2,
+    marginHorizontal: 1,
   },
   instrucao: {
     backgroundColor: '#f0f4ff',
     borderRadius: 10,
-    padding: 10,
-    marginTop: 4,
-    marginBottom: 8,
+    padding: 8,
+    marginTop: 2,
+    marginBottom: 6,
   },
   instrucaoTexto: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textDark,
   },
-  botaoPlay: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+  acoes: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'flex-end',
+    marginTop: 4,
   },
-  botaoStop: {
+  botaoEncerrar: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
     backgroundColor: '#E53935',
+  },
+  botaoIniciar: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
   },
   botaoTexto: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 13,
+    fontWeight: '600',
   },
   labelLinha: {
     paddingHorizontal: 6,
